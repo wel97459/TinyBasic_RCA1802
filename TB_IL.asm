@@ -198,7 +198,7 @@ IL_CHAR  MACRO char, endchar
         DB endchar | 80h
     ENDM
 
-STRT    IL_PC '', '>'; , 11h          ;':Q^'  Start Of IL Program
+STRT    IL_PC ':', 11h          ;':Q^'  Start Of IL Program
         IL_GL                   ;GL
         IL_SB                   ;SB
         IL_BE LO                ;BE      :LO

@@ -140,7 +140,7 @@ XEQ        DB      019h
 LEND       DB      034h
 AEPTR      DB      080h
 TTYCC      DB      000h
-NXA        DW      STMT       ;START OF Statements
+NXA        DW      00773h
 AIL        DW      STRT       ;START OF IL
 BASIC      DW      00F40h     ;LOWEST ADD. FOR PROGRAM
 STACK      DW      03FF7h     ;HIGHEST ADD. FOR PROGRAM
@@ -1019,9 +1019,9 @@ SHCL       PLO     AC        ;AND DIVIDE
 ;
 NXT        FETCH   XEQ       ;IF DIRECT EXECUTION
            LBZ     FIN       ;QUIT WITh, 0DFh =0
--          LDA     BP        ;ELSE SCAN TO NEXT <CR>
+           LDA     BP        ;ELSE SCAN TO NEXT <CR>
            XRI     00Dh
-           BNZ     -
+           BNZ     $-3
            CALL    GLINO     ;GET LINE NUMBER
            BZ      BERR      ;ZERO IS ERROR
 CONT       CALL    BREAKV    ;TEST FOR BREAK
@@ -1273,7 +1273,7 @@ SAV        FETCH   TOPS ;ADJUST STACK TOP
            STXD
            LBR     NEXT
 ;
-GLINO      FETCH   LINO-1    ;SETUP POINTER
+GLINO      FETCH   LINO-1 ;SETUP POINTER
            LDA     BP        ;GET 1ST BYTE
            STR     PZ        ;STORE IN RAM
            INC     PZ
@@ -1440,8 +1440,10 @@ IO         STXD              ;PUSH OUT BYTE
            INC     R2        ;DO INCREMENT NOW
            SEP     PZ        ;GO EXECUTE, RESULT IN D
 
+
 ;LOAD Tinybasic IL
-           include "TB_IL.asm"  
+           include "TB_IL.asm"
+           DB 0,0
 
 TVON       LDI     (INTERUPT)&255  ;SETUP INTERRUPT ROUTINE
            PLO     R1
@@ -1453,7 +1455,6 @@ TVON       LDI     (INTERUPT)&255  ;SETUP INTERRUPT ROUTINE
            SEX     R3
            RET               ;ENABLE INTERRUPTS
            RETURN
-           DB 00
 Z283       ORI     034h      ;MAKE FLG BRANCH
            PHI     RF        ;SAVE HIGH F
            DEC     RD
@@ -1640,7 +1641,6 @@ TVOFF      LDI     00Ch       ;TV OFF AND DELAY
 ;
 ; Character Formatter - ASCII character in ACC.
 ;
-           align 8
 TVD        ANI     07Fh       ;SET HIGH BIT TO 0
            PLO     RE         ;SAVE FOR EXIT
            SMI     060h       ;CHECK FOR UPPER CASE
@@ -1954,12 +1954,10 @@ Z322       GLO     R8         ;GO TO NEXT LINE UP
 ;
 Z327       LDI     3
            PLO     R0
-           SEX     R2         ;Restore XX
+           SEX     R2
            LDA     R2
-           PLO     XX
-           LDA     R2
-           PHI     XX
-           LDA     R2         ;Restore D
+           SHL
+           LDA     R2         ;RECOVER D
            RET                ;< EXIT
 INTERUPT   NOP                ;> ENTRY DISPLAY INT. ROUTINE
            DEC     R2
@@ -1971,33 +1969,29 @@ INTERUPT   NOP                ;> ENTRY DISPLAY INT. ROUTINE
            LDI     (BUFF)&255
            PLO     R0
 -          B1      -          ;SYNCHRONIZE
-DISPLP     GLO     R0
+Z326       GLO     R0
            DEC     R0
            PLO     R0
-           SEX     R2         ;NOT A NOP
+           SEX     R0         ;NOT A NOP
            DEC     R0
            PLO     R0         ;THREE LINES PER PIXEL
            GHI     R0         ;LAST LINE
            XRI     (BUFE)>>8  ;IS NEW PAGE
-           BNZ     DISPLP
-           GHI     XX         ;Update Time - Save XX
-           STXD
-           GLO     XX
-           STR     R2
-           LDI     0          ;SETUP time address
-           PHI     XX
+           BNZ     Z326
+           PHI     R0
            LDI     (TIME_+2)&255 ;NOW UPDATE CLOCK
-           PLO     XX
-           LDN     XX
+           PLO     R0
+           SHRC               ;SAVE CARRY
+           STR     R2
+           LDX
            ADI     1          ;INCREMENT FRAME COUNT
-           STR     XX
+           STR     R0
            SMI     03Dh       ;ONE SECOND
            BNF     Z327       ;NOT YET
-           STR     XX         ;IF YES,
-           DEC     XX
-           LDN     XX           ;BUMP SECONDS
+           STXD               ;IF YES,
+           LDX                ;BUMP SECONDS
            ADI     1
-           STR     XX
+           STR     R0
            BR      Z327
 CTBL       DW      08608h     ;SP MASK BYTE AND DATA POINTER
            DW      0820Ah     ;! MASK BYTE AND DATA POINTER
