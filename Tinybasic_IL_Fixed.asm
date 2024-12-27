@@ -1952,7 +1952,7 @@ Z322       GLO     R8         ;GO TO NEXT LINE UP
 ;
 ; Interrupt service routine for 1861
 ;
-Z327       LDI     3
+INT_RETURN LDI     3
            PLO     R0
            SEX     R2         ;Restore XX
            LDA     R2
@@ -1992,13 +1992,13 @@ DISPLP     GLO     R0
            ADI     1          ;INCREMENT FRAME COUNT
            STR     XX
            SMI     03Dh       ;ONE SECOND
-           BNF     Z327       ;NOT YET
+           BNF     INT_RETURN       ;NOT YET
            STR     XX         ;IF YES,
            DEC     XX
            LDN     XX           ;BUMP SECONDS
            ADI     1
            STR     XX
-           BR      Z327
+           BR      INT_RETURN
 CTBL       DW      08608h     ;SP MASK BYTE AND DATA POINTER
            DW      0820Ah     ;! MASK BYTE AND DATA POINTER
            DW      0E508h     ;" MASK BYTE AND DATA POINTER
